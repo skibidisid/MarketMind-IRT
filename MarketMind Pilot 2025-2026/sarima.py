@@ -1,5 +1,6 @@
 import yfinance as yf
 import pandas as pd
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
@@ -7,43 +8,61 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import adfuller
 import pmdarima as pmd
 
+# Main method
 def main():
-
-    # Stock ticker
+    # Setting ticker
     ticker = "VDE"
 
-    # CSV file to save downloaded data
+    # Creating csv file name
     csvFile = ticker + "_data.csv"
 
-    # Download historical price data
+    # Getting data and putting into csv file
     get_data(ticker, csvFile)
 
-    # Read CSV, set Date as index
-    df = pd.read_csv(csvFile, parse_dates=["Date"], index_col="Date")
+    # Reading the data in the csv file
+    df = read_csv(csvFile)
 
-    # Use closing prices only
-    close = df["Close"].dropna()
+    # Grabbing just the close data
+    closeData = getCloseData(df)
 
-    # Run the SARIMA forecasting steps
-    run_sarima(close, ticker)
+    # Running SARIMA forecasting
+    run_sarima(closeData, ticker)
 
+# Method to get data
 def get_data(ticker, csvFile):
-    # Download daily historical data
+    # Downloading data as a data frame and converting into a csv
     data = yf.download(ticker, start="2005-01-01", end="2025-11-19")
     data.to_csv(csvFile)
 
-def run_sarima(close, ticker):
+# Reading csv into DataFrame
+def read_csv(csvFile):
+    if os.path.exists(csvFile):
+        df = pd.read_csv(csvFile, parse_dates=["Date"], index_col="Date")
+        return df
+    else:
+        print("File " + csvFile + " does not exist.")
+        return None
 
+# Extracting just the close data
+def getCloseData(df):
+    if df is not None:
+        closeData = df["Close"].dropna()
+        return closeData
+    else:
+        return []
+
+# Running SARIMA forecasting
+def run_sarima(close, ticker):
     # Plot the raw closing price
     plt.plot(close)
     plt.title(ticker + " Close Price")
     plt.show()
 
-    # ACF plot (helps identify q / Q)
+    # ACF plot
     sm.graphics.tsa.plot_acf(close, lags=40)
     plt.show()
 
-    # PACF plot (helps identify p / P)
+    # PACF plot
     sm.graphics.tsa.plot_pacf(close, lags=40)
     plt.show()
 
@@ -105,4 +124,5 @@ def run_sarima(close, ticker):
     plt.title(ticker + " SARIMA Forecast")
     plt.show()
 
+# Calling main
 main()
