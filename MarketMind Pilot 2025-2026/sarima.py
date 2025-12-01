@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from sklearn.metrics import mean_absolute_error
+
 
 # Main method
 def main():
@@ -108,6 +110,39 @@ def runSARIMA(closeSeries, ticker):
 
     plt.tight_layout()
     plt.show()
+
+    # use last 30 observations as test
+    n_test = 30
+    train = closeSeries[:-n_test]
+    test = closeSeries[-n_test:]
+
+    order = (1, 1, 1)
+    seasonal_order = (1, 1, 1, 12)
+
+    # fit on training data only
+    model = SARIMAX(train, order=order, seasonal_order=seasonal_order)
+    results = model.fit(disp=False)
+
+    # forecast exactly len(test) steps ahead
+    forecast = results.forecast(steps=n_test)
+
+    # MAE between forecast and actual test data
+    mae = mean_absolute_error(test, forecast)
+    print("MAE on last 30 days:", mae)
+
+    # Plot actual vs predicted on test window
+    plt.figure(figsize=(12,6))
+    plt.plot(train.index, train, label="Train")
+    plt.plot(test.index, test, label="Actual (Test)", color="blue")
+    plt.plot(forecast.index, forecast, label="Predicted", color="red")
+    plt.axvline(x=test.index[0], color="gray", linestyle="--", alpha=0.6)
+    plt.title(f"SARIMA Actual vs Predicted for {ticker}")
+    plt.xlabel("Date")
+    plt.ylabel("Price")
+    plt.legend()
+    plt.show()
+
+
 
 # Call main
 main()
