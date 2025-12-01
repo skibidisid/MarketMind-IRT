@@ -142,7 +142,5 @@ def runSARIMA(closeSeries, ticker):
     plt.legend()
     plt.show()
 
-
-
 # Call main
 main()

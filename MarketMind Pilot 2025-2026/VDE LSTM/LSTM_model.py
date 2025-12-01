@@ -206,5 +206,5 @@ def load_data(ticker):
     data.reset_index(inplace=True)
     return data
 
-# Calling main
+# Calling main method
 main ()
