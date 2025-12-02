@@ -6,14 +6,15 @@ import joblib
 import numpy as np
 import joblib
 import yfinance as yf
-
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+import math
+import matplotlib.pyplot as plt
 
 # Load the best model you trained
 model = load_model('best_lstm_model.h5')
 
 # Load the scaler you saved
 scaler = joblib.load('scaler.save')
-
 
 # Get fresh data
 new_data = yf.download('VDE', start='2020-01-01', end='2025-11-24')
@@ -41,17 +42,13 @@ y_test_actual = close_prices[100:]
 
 print("Predicted prices:", y_pred_actual[:5])
 
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-import math
-
 mae = mean_absolute_error(y_test_actual, y_pred_actual)
 rmse = math.sqrt(mean_squared_error(y_test_actual, y_pred_actual))
 
-print(f"MAE: {mae:.4f}")
-print(f"RMSE: {rmse:.4f}")
+print("MAE: " + format(mae, ".4f"))
+print("RMSE: " + format(rmse, ".4f"))
 
-import matplotlib.pyplot as plt
-
+# Plotting figure
 plt.figure(figsize=(12, 6))
 plt.plot(y_test_actual, 'b', label='Actual Price')
 plt.plot(y_pred_actual, 'r', label='Predicted Price')
@@ -60,10 +57,6 @@ plt.ylabel('Price')
 plt.legend()
 plt.title('LSTM Predictions vs Actual')
 plt.show()
-
-# ========================================
-# PREDICT TOMORROW (ONE DAY INTO FUTURE)
-# ========================================
 
 # Get the LAST 100 days from your scaled data
 last_100_days = scaled_data[-100:]
@@ -77,12 +70,15 @@ tomorrow_pred_scaled = model.predict(x_input, verbose=0)
 # Convert back to actual price
 tomorrow_pred_actual = scaler.inverse_transform(tomorrow_pred_scaled)
 
-print("\n" + "="*50)
-print("TOMORROW'S PREDICTION")
-print("="*50)
-print(f"Today's close (2025-11-24): ${close_prices[-1][0]:.2f}")
-print(f"Tomorrow's predicted price: ${tomorrow_pred_actual[0][0]:.2f}")
-print(f"Expected change: ${tomorrow_pred_actual[0][0] - close_prices[-1][0]:.2f}")
-print(f"Expected % change: {((tomorrow_pred_actual[0][0] / close_prices[-1][0]) - 1) * 100:.2f}%")
-print("="*50)
+# Calc % change
+pct_change = ((tomorrow_pred_actual[0][0] / close_prices[-1][0]) - 1) * 100
 
+# Prediction output
+print("\n" + "=" * 50)
+print("TOMORROW'S PREDICTION")
+print("=" * 50)
+print("Today's close (2025-11-24): $" + format(close_prices[-1][0], ".2f"))
+print("Tomorrow's predicted price: $" + format(tomorrow_pred_actual[0][0], ".2f"))
+print("Expected change: $" + format(tomorrow_pred_actual[0][0] - close_prices[-1][0], ".2f"))
+print("Expected % change: " + format(pct_change, ".2f") + "%")
+print("=" * 50)
