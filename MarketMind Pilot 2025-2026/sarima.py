@@ -124,7 +124,6 @@ def runSARIMA(closeSeries, ticker):
     
 
     # matplotlib default code just to make the graph appear to our preferences
-    # ---- Plot ---- #
     plt.figure(figsize=(12, 6))
 
     # Plot historical data
